@@ -1,0 +1,196 @@
+{
+  "name": "MODELO - Lembrete diário por data ou quilometragem",
+  "nodes": [
+    {
+      "name": "Leia-me",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -220
+      ],
+      "parameters": {
+        "content": "Modelo de lembrete. Todo dia lê a aba Clientes, escolhe quem avisar (revisão por data ou km, ou aniversário), envia a mensagem e marca na planilha. Respeita opt-out, limite diário e intervalo de 5 s entre envios; só marca como avisado quem recebeu.",
+        "width": 460,
+        "height": 140
+      }
+    },
+    {
+      "name": "Todo dia às 9h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Ler aba Clientes",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "operation": "getAll",
+        "documentId": {
+          "__rl": true,
+          "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Clientes",
+          "mode": "name"
+        }
+      }
+    },
+    {
+      "name": "Escolher quem avisar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Escolhe os clientes a avisar hoje. Ajuste as regras e o limite diário.\n// Datas na planilha devem estar como AAAA-MM-DD. Células vazias nunca contam como zero.\nconst LIMITE_DIARIO = 30;\nconst DIAS_ANTES = 7;\nconst KM_ANTES = 500;\nconst DIAS_ENTRE_AVISOS_KM = 30;\nconst hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });\nconst ehData = (v) => /^\\d{4}-\\d{2}-\\d{2}/.test(String(v || ''));\nconst dia = (v) => { const [a, m, d] = String(v).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d) / 86400000; };\nconst temNumero = (v) => String(v ?? '').trim() !== '' && Number.isFinite(Number(v));\nconst saida = [];\nfor (const item of $input.all()) {\n  const c = item.json;\n  if (String(c.optout).toLowerCase() === 'sim' || !c.telefone) continue;\n  const avisado = ehData(c.ultimo_aviso) ? dia(c.ultimo_aviso) : null;\n  if (avisado === dia(hoje)) continue;\n  const dias = ehData(c.proxima_revisao) ? dia(c.proxima_revisao) - dia(hoje) : null;\n  const porData = dias !== null && dias >= 0 && dias <= DIAS_ANTES\n    && (avisado === null || avisado < dia(c.proxima_revisao) - DIAS_ANTES);\n  const kmFalta = temNumero(c.km_proxima_revisao) && temNumero(c.km_atual)\n    ? Number(c.km_proxima_revisao) - Number(c.km_atual) : null;\n  const porKm = kmFalta !== null && kmFalta >= 0 && kmFalta <= KM_ANTES\n    && (avisado === null || dia(hoje) - avisado >= DIAS_ENTRE_AVISOS_KM);\n  const aniversario = ehData(c.nascimento) && String(c.nascimento).slice(5, 10) === hoje.slice(5, 10);\n  if (porData || porKm) saida.push({ json: { ...c, motivo: 'revisao' } });\n  else if (aniversario) saida.push({ json: { ...c, motivo: 'aniversario' } });\n}\nreturn saida.slice(0, LIMITE_DIARIO);"
+      }
+    },
+    {
+      "name": "Enviar mensagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/COLE_AQUI_O_PHONE_NUMBER_ID/messages",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({messaging_product: \"whatsapp\", to: $json.telefone, type: \"template\", template: {name: ($json.motivo === 'aniversario' ? 'TEMPLATE_ANIVERSARIO' : 'TEMPLATE_REVISAO'), language: {code: \"pt_BR\"}, components: [{type: \"body\", parameters: [{type: \"text\", text: $json.nome}]}]}}) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 5000
+            }
+          }
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "name": "Falha no envio (não marca)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        140
+      ],
+      "parameters": {}
+    },
+    {
+      "name": "Marcar como avisado",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Clientes",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telefone": "={{ $('Escolher quem avisar').item.json.telefone }}",
+            "ultimo_aviso": "={{ $now.toISODate() }}"
+          },
+          "matchingColumns": [
+            "telefone"
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Todo dia às 9h": {
+      "main": [
+        [
+          {
+            "node": "Ler aba Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler aba Clientes": {
+      "main": [
+        [
+          {
+            "node": "Escolher quem avisar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escolher quem avisar": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Marcar como avisado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Falha no envio (não marca)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

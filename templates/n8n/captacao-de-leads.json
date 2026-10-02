@@ -1,0 +1,227 @@
+{
+  "name": "MODELO - Captação de leads para planilha com aviso",
+  "nodes": [
+    {
+      "name": "Leia-me",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -200
+      ],
+      "parameters": {
+        "content": "Modelo de captação. Recebe um lead por webhook, grava na aba Leads e avisa o dono. Troque os campos COLE_AQUI e configure as credenciais no n8n do cliente.",
+        "width": 420,
+        "height": 140
+      }
+    },
+    {
+      "name": "Receber lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "name": "Padronizar campos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "nome",
+              "value": "={{ $json.body.nome }}",
+              "type": "string"
+            },
+            {
+              "name": "telefone",
+              "value": "={{ String($json.body.telefone || '').replace(/\\D/g, '') }}",
+              "type": "string"
+            },
+            {
+              "name": "origem",
+              "value": "={{ $json.body.origem || 'site' }}",
+              "type": "string"
+            },
+            {
+              "name": "recebido_em",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tem telefone?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.telefone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Gravar na aba Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        -80
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "COLE_AQUI_O_ID_DA_PLANILHA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        }
+      }
+    },
+    {
+      "name": "Avisar o dono",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/COLE_AQUI_O_PHONE_NUMBER_ID/messages",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({messaging_product: \"whatsapp\", to: \"COLE_AQUI_TELEFONE_DO_DONO\", type: \"template\", template: {name: \"NOME_DO_TEMPLATE_DE_AVISO\", language: {code: \"pt_BR\"}, components: [{type: \"body\", parameters: [{type: \"text\", text: $json.nome}]}]}}) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "name": "Responder ok",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        -80
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true } }}"
+      }
+    },
+    {
+      "name": "Responder erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        100
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 422,
+        "responseBody": "={{ { ok: false, motivo: \"telefone ausente\" } }}"
+      }
+    }
+  ],
+  "connections": {
+    "Receber lead": {
+      "main": [
+        [
+          {
+            "node": "Padronizar campos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Padronizar campos": {
+      "main": [
+        [
+          {
+            "node": "Tem telefone?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem telefone?": {
+      "main": [
+        [
+          {
+            "node": "Gravar na aba Leads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gravar na aba Leads": {
+      "main": [
+        [
+          {
+            "node": "Avisar o dono",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar o dono": {
+      "main": [
+        [
+          {
+            "node": "Responder ok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

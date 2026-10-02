@@ -1,0 +1,523 @@
+<title>Guia dos 8 Repositórios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: índice fixo à esquerda (vira chips no celular) + uma ficha por repositório com abas de IDE.
+   Cor: neutros esverdeados, teal como acento, âmbar só para avisos. */
+:root {
+  --bg: #eef2f0;
+  --surface: #ffffff;
+  --surface-2: #e4ebe8;
+  --ink: #14201d;
+  --ink-soft: #4a5b56;
+  --line: #cbd7d2;
+  --accent: #0b6b5b;
+  --accent-ink: #ffffff;
+  --accent-soft: #d3ebe5;
+  --warn: #8a4b06;
+  --warn-soft: #f8e8d0;
+  --code-bg: #101a18;
+  --code-ink: #d8efe8;
+  --code-dim: #7fa399;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1513; --surface: #16201d; --surface-2: #1d2a26; --ink: #e3efea; --ink-soft: #9db3ab;
+    --line: #2b3b36; --accent: #4fd1b5; --accent-ink: #072620; --accent-soft: #15332c;
+    --warn: #f0b469; --warn-soft: #34260f; --code-bg: #0a100f; --code-ink: #d8efe8; --code-dim: #6f948a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1513; --surface: #16201d; --surface-2: #1d2a26; --ink: #e3efea; --ink-soft: #9db3ab;
+  --line: #2b3b36; --accent: #4fd1b5; --accent-ink: #072620; --accent-soft: #15332c;
+  --warn: #f0b469; --warn-soft: #34260f; --code-bg: #0a100f; --code-ink: #d8efe8; --code-dim: #6f948a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-display); font-size: 16px; line-height: 1.55; padding-inline: 16px; padding-block: 24px 64px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+code, pre, .mono { font-family: var(--font-mono); }
+
+.shell { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; }
+header.top { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 14px; padding-bottom: 8px; }
+h1 { font-size: clamp(2rem, 1.2rem + 3.4vw, 3.4rem); line-height: 1.02; font-weight: 800; letter-spacing: -0.02em; margin: 0; text-wrap: balance; max-width: 18ch; }
+.lede { max-width: 66ch; color: var(--ink-soft); font-size: 1.06rem; margin: 0; }
+.picker { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: .92rem; }
+.picker label { font-weight: 600; }
+select { font: inherit; font-size: .92rem; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+
+nav.index { position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; padding-top: 12px; display: flex; flex-direction: column; gap: 2px; }
+nav.index a { display: flex; flex-direction: column; text-decoration: none; color: var(--ink); padding: 8px 10px; border-radius: 8px; border-left: 3px solid transparent; font-weight: 600; font-size: .95rem; }
+nav.index a small { color: var(--ink-soft); font-weight: 400; font-size: .78rem; }
+nav.index a:hover, nav.index a.on { background: var(--surface); border-left-color: var(--accent); }
+
+main { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+section.glossary, section.matrix, section.fit { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+h2 { font-size: 1.5rem; margin: 0 0 6px; letter-spacing: -0.01em; text-wrap: balance; }
+h3 { font-size: 1.02rem; margin: 18px 0 6px; }
+p { margin: 0 0 10px; max-width: 70ch; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 12px; }
+.cols > div { background: var(--surface-2); border-radius: 10px; padding: 14px; min-width: 0; }
+.cols b { display: block; margin-bottom: 4px; }
+
+.tablewrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; min-width: 640px; width: 100%; font-size: .9rem; }
+th, td { text-align: center; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+td.yes { color: var(--accent); font-weight: 800; }
+td.no { color: var(--line); }
+td.txt { text-align: left; color: var(--ink-soft); font-size: .8rem; }
+
+article.repo { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; scroll-margin-top: 16px; }
+.repo-head { padding: 22px 22px 14px; display: flex; flex-direction: column; gap: 10px; }
+.repo-head h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.kind { font-family: var(--font-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; background: var(--accent-soft); color: var(--accent); padding: 3px 8px; border-radius: 6px; }
+.url { font-family: var(--font-mono); font-size: .82rem; word-break: break-all; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: .78rem; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 22px; padding: 4px 22px 18px; margin: 0; }
+.facts div { min-width: 0; }
+.facts dt { font-family: var(--font-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.facts dd { margin: 2px 0 0; font-size: .94rem; }
+.tabs { display: flex; gap: 4px; padding: 0 22px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { font: inherit; font-size: .88rem; font-weight: 600; padding: 10px 14px; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--ink-soft); cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.panel { padding: 16px 22px 8px; }
+.panel .why { color: var(--ink-soft); font-size: .92rem; margin-bottom: 10px; }
+.codebox { position: relative; background: var(--code-bg); border-radius: 10px; margin-bottom: 14px; }
+pre { margin: 0; padding: 14px 16px; overflow-x: auto; color: var(--code-ink); font-size: .82rem; line-height: 1.6; }
+.copy { position: absolute; top: 8px; right: 8px; font: inherit; font-size: .72rem; font-family: var(--font-mono); padding: 4px 9px; border-radius: 6px; border: 1px solid var(--code-dim); background: transparent; color: var(--code-ink); cursor: pointer; }
+.copy:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.note { margin: 6px 22px 20px; padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: .9rem; }
+footer { grid-column: 1 / -1; color: var(--ink-soft); font-size: .84rem; border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  nav.index { position: static; flex-direction: row; overflow-x: auto; gap: 6px; padding: 0 0 6px; }
+  nav.index a { flex: 0 0 auto; border-left: 0; border: 1px solid var(--line); background: var(--surface); }
+  nav.index a small { display: none; }
+  .repo-head, .facts, .panel { padding-inline: 16px; }
+  .tabs { padding-inline: 8px; }
+  .note { margin-inline: 16px; }
+}
+@media (prefers-reduced-motion: no-preference) { .tab, nav.index a { transition: color .15s, background .15s; } }
+</style>
+
+<div class="shell">
+  <header class="top">
+    <h1>Guia dos 8 repositórios</h1>
+    <p class="lede">Para cada repositório: o que é, para qual IDE ou harness serve, como instalar e como começar, com abas por ferramenta. Todo comando abaixo foi tirado do README do próprio repositório.</p>
+    <div class="picker">
+      <label for="idePick">Minha ferramenta principal:</label>
+      <select id="idePick">
+        <option value="">Mostrar a primeira aba de cada um</option>
+        <option value="claude">Claude Code (terminal ou extensão VS Code)</option>
+        <option value="codex">Codex CLI</option>
+        <option value="cursor">Cursor</option>
+        <option value="gemini">Gemini CLI</option>
+        <option value="copilot">GitHub Copilot</option>
+        <option value="opencode">OpenCode</option>
+      </select>
+    </div>
+  </header>
+
+  <nav class="index" id="index" aria-label="Repositórios"></nav>
+
+  <main id="main">
+    <section class="glossary">
+      <h2>IDE, harness e plugin: a diferença</h2>
+      <div class="cols">
+        <div><b>IDE</b>O editor onde você escreve: Cursor, VS Code, Windsurf, Trae, Cline.</div>
+        <div><b>Harness</b>O programa que cerca o modelo com ferramentas, memória e permissões: Claude Code, Codex CLI, Gemini CLI, OpenCode. Ele roda no terminal ou dentro da IDE.</div>
+        <div><b>Skill, agente, plugin</b>Arquivos Markdown que o harness carrega. Um plugin agrupa skills, agentes e comandos e se instala com um comando.</div>
+      </div>
+    </section>
+
+    <section class="matrix">
+      <h2>Onde cada repositório funciona</h2>
+      <p>● quer dizer que o README cita a ferramenta. O traço quer dizer que não cita, e não que não funciona.</p>
+      <div class="tablewrap"><table id="matrix"></table></div>
+    </section>
+
+    <div id="repos" style="display:contents"></div>
+
+    <section class="fit">
+      <h2>Como isso entra no seu Flow Hub</h2>
+      <p>Para vender fluxos n8n, o caminho mais curto com esses repositórios:</p>
+      <div class="cols">
+        <div><b>Entender o pedido do cliente</b>As skills de entrevista do mattpocock (<span class="mono">/grill-me</span>) fazem o agente perguntar antes de construir.</div>
+        <div><b>Proposta e contrato</b>As skills docx, pdf e pptx do anthropics/skills geram o documento final a partir do orçamento do <span class="mono">quote.py</span>.</div>
+        <div><b>Construir com método</b>O GSD quebra o projeto em fases, com plano, execução e verificação. O wshobson/agents traz agentes prontos por área.</div>
+        <div><b>Custo</b>O Claude Code Router permite mandar tarefas simples para um modelo mais barato.</div>
+        <div><b>Vitrine</b>O seu agile-coach-ai já é o site. Esta página pode virar uma aba dele.</div>
+      </div>
+    </section>
+  </main>
+  <footer>Conteúdo conferido nos READMEs clonados em 01/10/2026. Contagens (plugins, agentes, skills) mudam a cada versão.</footer>
+</div>
+
+<script>
+const REPOS = [
+  {
+    id: "gsd", nome: "Get Shit Done (GSD)", url: "https://github.com/gsd-build/get-shit-done",
+    tipo: "Método de desenvolvimento", curto: "Spec-driven, fases",
+    tagline: "Sistema de meta-prompting e engenharia de contexto que divide o projeto em fases (discutir, planejar, executar, verificar) para o agente não se perder conforme a conversa cresce.",
+    harness: ["Claude Code", "Codex", "Gemini CLI", "OpenCode", "Kilo", "Copilot", "Cursor", "Windsurf", "Antigravity", "Augment", "Trae", "Cline"],
+    serve: "Quem constrói projetos inteiros com agente e quer um fluxo guiado, sem cerimônia de sprint. Resolve o “context rot”, a queda de qualidade quando a janela de contexto enche.",
+    uso: "Abra a pasta do projeto, rode o instalador, depois /gsd-new-project e siga as fases.",
+    nota: "O README recomenda rodar o Claude Code sem pedir permissões. As suas regras globais proíbem isso. Em vez disso, libere só as ferramentas necessárias em allowedTools no ~/.claude.json.",
+    tabs: [
+      { k: "claude", l: "Claude Code", why: "Instala os comandos /gsd-* e os subagentes. Funciona no terminal e na extensão do VS Code.", code:
+`# instalar (global = vale para todos os projetos)
+npx get-shit-done-cc --claude --global
+# ou só neste projeto
+npx get-shit-done-cc --claude --local
+
+# no Claude Code, dentro da pasta do projeto:
+/gsd-new-project            # entrevista e cria o roadmap
+/gsd-discuss-phase 1        # decisões da fase 1
+/gsd-plan-phase 1           # pesquisa + plano
+/gsd-execute-phase 1        # executa em ondas paralelas
+/gsd-verify-work 1          # teste de aceite manual
+/gsd-quick                  # tarefa pequena com as garantias do GSD` },
+      { k: "codex", l: "Codex CLI", why: "Mesmo fluxo, instalado na configuração do Codex.", code:
+`npx get-shit-done-cc --codex --global
+# ou: npx get-shit-done-cc --codex --local
+
+# depois, no Codex, use os mesmos comandos:
+/gsd-new-project` },
+      { k: "cursor", l: "Cursor", why: "Cursor é uma IDE: o GSD instala os comandos no formato dela.", code:
+`npx get-shit-done-cc --cursor --global
+# ou: npx get-shit-done-cc --cursor --local
+
+# no chat do Cursor:
+/gsd-new-project` },
+      { k: "gemini", l: "Gemini CLI", why: "Para quem usa o harness do Google.", code:
+`npx get-shit-done-cc --gemini --global
+/gsd-new-project` },
+      { k: "copilot", l: "Copilot", why: "GitHub Copilot no VS Code.", code:
+`npx get-shit-done-cc --copilot --global
+# ou: npx get-shit-done-cc --copilot --local` },
+      { k: "opencode", l: "OpenCode", why: "Harness open source de terminal.", code:
+`npx get-shit-done-cc --opencode --global` },
+      { k: "outros", l: "Outras / enxuto", why: "Também há flags para --kilo, --windsurf, --antigravity, --augment, --trae, --cline e --all. O perfil enxuto instala só 6 skills do loop principal e reduz o prompt inicial de ~12k para ~700 tokens, bom para modelos locais.", code:
+`# escolher o runtime sem a pergunta interativa
+npx get-shit-done-cc --windsurf --global
+
+# perfil mínimo (sem subagentes gsd-*)
+npx get-shit-done-cc --claude --global --minimal
+
+# desinstalar
+npx get-shit-done-cc --claude --global --uninstall` }
+    ]
+  },
+  {
+    id: "wshobson", nome: "wshobson/agents", url: "https://github.com/wshobson/agents",
+    tipo: "Marketplace de plugins", curto: "94 plugins, 202 agentes",
+    tagline: "Marketplace com 94 plugins, 202 agentes, 184 skills e 105 comandos, escritos uma vez em Markdown e convertidos para cada harness.",
+    harness: ["Claude Code (nativo)", "Codex CLI", "Cursor 2.5+", "OpenCode", "Antigravity CLI", "Copilot", "Pi"],
+    serve: "Quem quer agentes prontos por especialidade (Python, Django, segurança, infraestrutura, SEO) sem escrevê-los. Cada plugin é isolado: instalar um carrega só os componentes dele.",
+    uso: "Adicione o marketplace e instale só o plugin da sua stack, por exemplo python-development.",
+    nota: "No Windows, os alvos make (OpenCode, Antigravity, Pi) provavelmente pedem Git Bash ou WSL. A instalação nativa do Claude Code, Codex e Cursor não usa make.",
+    tabs: [
+      { k: "claude", l: "Claude Code", why: "Fonte original do repositório; é o caminho mais completo.", code:
+`/plugin marketplace add wshobson/agents
+/plugin install python-development     # ou qualquer um dos 94
+
+# usar: peça pelo nome do agente ou deixe o Claude escolher
+> use o agente python-pro para revisar este módulo` },
+      { k: "codex", l: "Codex CLI", why: "Registro commitado no repositório; instala plugins individuais.", code:
+`npx codex-marketplace add wshobson/agents
+# depois instale os plugins que quiser` },
+      { k: "cursor", l: "Cursor", why: "Cursor 2.5 ou mais novo, lê .cursor-plugin/ e as regras curadas.", code:
+`# no Cursor: adicione o marketplace wshobson/agents e depois
+/plugin install python-development` },
+      { k: "opencode", l: "OpenCode", why: "Gera os arquivos e cria links simbólicos.", code:
+`gh repo clone wshobson/agents ~/agents && cd ~/agents
+make install-opencode      # roda generate + symlinks` },
+      { k: "antigravity", l: "Antigravity / Pi", why: "Gerados localmente a partir da fonte.", code:
+`gh repo clone wshobson/agents ~/agents && cd ~/agents
+make generate HARNESS=antigravity && make install-antigravity
+make generate HARNESS=pi && make install-pi` },
+      { k: "skills", l: "Só skills", why: "Sem agentes, comandos ou hooks. Serve para qualquer agente compatível, sem clonar nada.", code:
+`gh skill install wshobson/agents
+gh skill install wshobson/agents python-testing-patterns --agent claude-code
+npx skills add wshobson/agents --skill python-testing-patterns -a claude-code` }
+    ]
+  },
+  {
+    id: "awesome", nome: "awesome-claude-code", url: "https://github.com/hesreallyhim/awesome-claude-code",
+    tipo: "Lista curada", curto: "Onde achar coisas",
+    tagline: "Coleção selecionada de skills, agentes, status lines, plugins, ferramentas de orquestração, memória e segurança para o Claude Code. Não se instala: é um mapa para você descobrir o que instalar.",
+    harness: ["Claude Code (foco)"],
+    serve: "Quem quer descobrir ferramentas, referências e boas práticas antes de escolher. A seção “Start Here” é a melhor entrada para iniciantes.",
+    uso: "Leia “Start Here”, escolha um item por categoria e instale pelo README de cada projeto.",
+    nota: "O conteúdo muda toda semana. Confira a data do último commit de cada recurso antes de adotar.",
+    tabs: [
+      { k: "web", l: "Navegador", why: "A forma mais simples. O índice do README tem categorias como Skills, Agent Orchestration, Status Lines, Testing e Security.", code:
+`https://github.com/hesreallyhim/awesome-claude-code
+# abra o README e vá em "Table of Contents" > "Start Here"` },
+      { k: "terminal", l: "Terminal", why: "Clonar e procurar por assunto, sem abrir o navegador.", code:
+`git clone --depth 1 https://github.com/hesreallyhim/awesome-claude-code.git
+cd awesome-claude-code
+grep -n -i "n8n" README.md
+grep -n -i "status line" README.md` },
+      { k: "claude", l: "Dentro do Claude Code", why: "Peça ao agente para ler a lista por você.", code:
+`> leia README.md e liste 5 recursos da seção Skills
+> que ajudam a escrever propostas comerciais; para cada um
+> diga a licença e o último commit` }
+    ]
+  },
+  {
+    id: "anthropic", nome: "anthropics/skills", url: "https://github.com/anthropics/skills",
+    tipo: "Skills oficiais", curto: "docx, pdf, pptx, xlsx",
+    tagline: "Implementação oficial de skills da Anthropic. Inclui as skills de documentos (docx, pdf, pptx, xlsx) que a própria Claude usa para criar arquivos, além de exemplos criativos e técnicos e a especificação Agent Skills.",
+    harness: ["Claude Code", "Claude.ai", "API do Claude"],
+    serve: "Quem quer gerar propostas em Word, planilhas e apresentações, e aprender a escrever as próprias skills. Uma skill é uma pasta com um SKILL.md.",
+    uso: "Instale document-skills e peça “use a skill de PDF para extrair os campos de arquivo.pdf”.",
+    nota: "As skills de documentos são source-available, não open source. Os exemplos são para demonstração: teste antes de depender deles.",
+    tabs: [
+      { k: "claude", l: "Claude Code", why: "Registra o repositório como marketplace.", code:
+`/plugin marketplace add anthropics/skills
+/plugin install document-skills@anthropic-agent-skills
+/plugin install example-skills@anthropic-agent-skills
+
+> use a skill de PDF para extrair os campos de proposta.pdf` },
+      { k: "claudeai", l: "Claude.ai", why: "Planos pagos já trazem essas skills. Para as suas, siga o guia oficial de uso de skills.", code:
+`# guia: support.claude.com/en/articles/12512180
+# envie uma pasta com SKILL.md pelo menu de skills` },
+      { k: "api", l: "API", why: "Skills prontas ou enviadas por você, via Skills API.", code:
+`# guia oficial: Skills API Quickstart
+# https://docs.claude.com/en/api/skills-guide` },
+      { k: "criar", l: "Criar a sua", why: "Só dois campos são obrigatórios no cabeçalho: name e description.", code:
+`mkdir -p .claude/skills/gerar-proposta
+cat > .claude/skills/gerar-proposta/SKILL.md <<'EOF'
+---
+name: gerar-proposta
+description: Gera proposta comercial de automação a partir do orçamento e do escopo
+---
+# Gerar proposta
+1. Leia o escopo e rode python flowhub/quote.py
+2. Preencha o modelo de proposta 1-pager
+EOF` }
+    ]
+  },
+  {
+    id: "mattpocock", nome: "mattpocock/skills", url: "https://github.com/mattpocock/skills",
+    tipo: "Skills de engenharia", curto: "Entrevista antes de codar",
+    tagline: "Skills pequenas e combináveis, nascidas da experiência de engenharia, para corrigir falhas comuns do agente: não entender o que você quer e ser verboso demais. A base é a “sessão de grelhar”, em que o agente faz perguntas detalhadas antes de agir.",
+    harness: ["Claude Code (plugin)", "Codex", "outros via skills.sh"],
+    serve: "Quem prefere manter o controle do processo, em vez de adotar um método fechado como GSD, BMAD ou Spec-Kit. Funciona com qualquer modelo.",
+    uso: "Instale, rode /setup-matt-pocock-skills uma vez por repositório e depois /grill-me antes de cada mudança.",
+    nota: "Escolha um caminho só. Instalar o plugin e também copiar as skills deixa tudo duplicado.",
+    tabs: [
+      { k: "claude", l: "Claude Code (plugin)", why: "Conjunto gerenciado e somente leitura; atualiza quando o autor publica.", code:
+`claude plugins install mattpocock-skills
+# ou, dentro de uma sessão:
+/plugin install mattpocock-skills
+
+# uma vez por repositório:
+/setup-matt-pocock-skills      # tracker (GitHub/Linear/arquivos), labels, onde guardar docs
+
+# no dia a dia:
+/grill-me                      # entrevista para uso fora de código
+/grill-with-docs               # igual, e registra a linguagem do projeto` },
+      { k: "codex", l: "Codex e outros", why: "Instalador skills.sh: você escolhe as skills e em quais agentes instalar.", code:
+`npx skills@latest add mattpocock/skills
+# marque setup-matt-pocock-skills entre as escolhidas
+# depois, no agente:
+/setup-matt-pocock-skills` },
+      { k: "editavel", l: "Editável", why: "Copia os arquivos para o seu repositório; nada atualiza sozinho.", code:
+`npx skills@latest add mattpocock/skills
+# atualizar quando quiser:
+npx skills update` }
+    ]
+  },
+  {
+    id: "ccr", nome: "Claude Code Router", url: "https://github.com/musistudio/claude-code-router",
+    tipo: "Gateway de modelos", curto: "Troca de provedor, custo",
+    tagline: "Gateway local que dá a todos os seus agentes um único endereço, e permite trocar de provedor ou modelo, ter fallback, ver custo e logs, sem mexer na configuração de cada agente.",
+    harness: ["Claude Code", "Codex", "OpenCode", "Kilo Code", "Grok CLI", "Kimi CLI", "Pi", "ZCode", "Claude Design", "WorkBuddy"],
+    serve: "Quem usa vários modelos (OpenAI, Gemini, DeepSeek, Kimi, OpenRouter) ou quer reduzir custo mandando tarefas simples para um modelo mais barato. Não é uma IDE nem um harness: fica entre o harness e o provedor.",
+    uso: "Abra Providers, adicione uma chave, clique em Start no Server e aplique o perfil em Agent Config.",
+    nota: "Exige Node.js 22 ou mais novo no modo CLI. Não exponha o gateway na internet sem ler o guia de Docker.",
+    tabs: [
+      { k: "app", l: "App desktop", why: "Recomendado pelo README. Baixe o instalador para Windows, macOS ou Linux na página de releases.", code:
+`1. Providers > Add Provider  (preset ou endpoint próprio + chave)
+2. Server > Start            (gateway em http://127.0.0.1:3456)
+3. Agent Config              (escolha Claude Code, Codex... e o modelo)
+4. Use o agente normalmente; confira em Logs qual rota foi usada` },
+      { k: "cli", l: "CLI (npm)", why: "Mesma coisa sem Electron, com interface no navegador.", code:
+`npm install -g @musistudio/claude-code-router
+ccr ui
+# interface: http://127.0.0.1:3458
+# gateway:   http://127.0.0.1:3456` },
+      { k: "docker", l: "Docker", why: "Para servidor ou equipe.", code:
+`npm run docker:compose:up
+# interface e rotas em http://127.0.0.1:3458` },
+      { k: "claude", l: "Com Claude Code", why: "O perfil é aplicado pelo próprio app, em Agent Config. Depois disso, o Claude Code passa a falar com o gateway local.", code:
+`# sem edição manual: Agent Config > Claude Code > escolher modelo > aplicar perfil
+# regras de roteamento (fallback, condições): aba Routing` }
+    ]
+  },
+  {
+    id: "ruflo", nome: "Ruflo", url: "https://github.com/ruvnet/ruflo",
+    tipo: "Meta-harness", curto: "Enxames de agentes + memória",
+    tagline: "Camada de execução em volta do Claude Code e do Codex: mais de 100 agentes, enxames coordenados, memória que aprende entre sessões, servidor MCP e guardrails de segurança. Antes se chamava Claude Flow.",
+    harness: ["Claude Code", "Codex"],
+    serve: "Quem quer orquestração avançada, com vários agentes trabalhando juntos e memória persistente. É o mais pesado do conjunto: instala arquivos, hooks e um daemon.",
+    uso: "Instale pelo CLI e continue usando o Claude Code normalmente. Os hooks roteiam e aprendem em segundo plano.",
+    nota: "No Windows, a forma curl | bash exige Git Bash ou WSL. O comando npx funciona direto no PowerShell. Comece num projeto de teste: ele escreve .claude/, .claude-flow/ e um CLAUDE.md.",
+    tabs: [
+      { k: "claude", l: "Claude Code (CLI)", why: "Caminho completo: agentes, comandos, skills, MCP, hooks e daemon.", code:
+`npx ruflo@latest init wizard      # funciona no PowerShell
+
+# registrar o servidor MCP no Claude Code
+claude mcp add claude-flow -- npx ruflo@latest mcp start` },
+      { k: "plugin", l: "Plugin leve", why: "Só comandos e definições de agentes, sem arquivos no projeto.", code:
+`/plugin marketplace add ruvnet/ruflo
+/plugin install ruflo-core@ruflo
+/plugin install ruflo-swarm@ruflo
+/plugin install ruflo-rag-memory@ruflo` },
+      { k: "codex", l: "Codex", why: "O README lista um plugin para Codex, mas o comando de instalação não está no trecho que li. Veja a seção Codex no README.", code:
+`# https://github.com/ruvnet/ruflo  (seção Codex Plugin)` }
+    ]
+  },
+  {
+    id: "agile", nome: "agile-coach-ai", url: "https://github.com/thiagovinigo/agile-coach-ai",
+    tipo: "Seu portal", curto: "Seu site de skills",
+    tagline: "O seu portal “Agile Coach AI”: páginas estáticas e uma API em Python, publicadas na Vercel, com hubs de skills e agentes (ECC, GSD, Superpowers, flowgrammers-skills, pm-skills, spec-driven) e material de treinamento.",
+    harness: ["Navegador", "Vercel"],
+    serve: "É a vitrine. Não é uma ferramenta de código: reúne e ensina as outras. O Flow Hub e este guia podem virar páginas dele.",
+    uso: "Clone, abra index.html localmente e publique pela Vercel.",
+    nota: "Não executei este projeto, só li a estrutura. O vercel.json define build com @vercel/python para api/index.py e @vercel/static para os HTML e pastas de conteúdo. O repositório inclui node_modules e muitos scripts de correção avulsos, bons candidatos a limpeza.",
+    tabs: [
+      { k: "web", l: "Navegador", why: "Veja a estrutura e abra as páginas.", code:
+`git clone https://github.com/thiagovinigo/agile-coach-ai.git
+cd agile-coach-ai
+# abra index.html no navegador` },
+      { k: "vercel", l: "Vercel", why: "O vercel.json já está pronto.", code:
+`npm i -g vercel
+vercel          # preview
+vercel --prod   # produção` },
+      { k: "claude", l: "Com Claude Code", why: "Peça para adicionar uma página nova ao portal.", code:
+`cd agile-coach-ai
+claude
+> adicione uma página "Guia dos repositórios" no menu do index.html,
+> seguindo o estilo das páginas em contexto/` }
+    ]
+  }
+];
+
+const MATRIX_COLS = ["Claude Code", "Codex", "Cursor", "Gemini CLI", "Copilot", "OpenCode"];
+const MATRIX = {
+  gsd:        { "Claude Code": 1, "Codex": 1, "Cursor": 1, "Gemini CLI": 1, "Copilot": 1, "OpenCode": 1, extra: "+ Windsurf, Kilo, Antigravity, Augment, Trae, Cline" },
+  wshobson:   { "Claude Code": 1, "Codex": 1, "Cursor": 1, "Copilot": 1, "OpenCode": 1, extra: "+ Antigravity, Pi" },
+  awesome:    { "Claude Code": 1, extra: "lista, não instala" },
+  anthropic:  { "Claude Code": 1, extra: "Claude.ai, API" },
+  mattpocock: { "Claude Code": 1, "Codex": 1, extra: "outros via skills.sh" },
+  ccr:        { "Claude Code": 1, "Codex": 1, "OpenCode": 1, extra: "Kilo, Grok, Kimi, Pi, ZCode" },
+  ruflo:      { "Claude Code": 1, "Codex": 1, extra: "" },
+  agile:      { extra: "navegador / Vercel" }
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+const store = {
+  get: () => { try { return localStorage.getItem("idePick") || ""; } catch (e) { return ""; } },
+  set: v => { try { localStorage.setItem("idePick", v); } catch (e) {} }
+};
+
+function buildMatrix() {
+  const t = $("#matrix");
+  const head = el("tr"); head.append(el("th", "", "Repositório"));
+  MATRIX_COLS.forEach(c => head.append(el("th", "", c)));
+  head.append(el("th", "", "Outros"));
+  t.append(head);
+  REPOS.forEach(r => {
+    const row = el("tr"); row.append(el("td", "", r.nome));
+    MATRIX_COLS.forEach(c => { const on = MATRIX[r.id][c]; row.append(el("td", on ? "yes" : "no", on ? "●" : "–")); });
+    row.append(el("td", "txt", MATRIX[r.id].extra || ""));
+    t.append(row);
+  });
+}
+
+function selectTab(art, key) {
+  art.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.k === key)));
+  art.querySelectorAll(".panel").forEach(p => { p.hidden = p.dataset.k !== key; });
+}
+
+function buildRepo(r) {
+  const art = el("article", "repo"); art.id = r.id;
+  const head = el("div", "repo-head");
+  const h2 = el("h2"); h2.append(r.nome, el("span", "kind", r.tipo)); head.append(h2);
+  const a = el("a", "url", r.url.replace("https://", "")); a.href = r.url; a.target = "_blank"; a.rel = "noopener"; head.append(a);
+  head.append(el("p", "", r.tagline));
+  const chips = el("div", "chips"); r.harness.forEach(h => chips.append(el("span", "chip", h))); head.append(chips);
+  art.append(head);
+
+  const facts = el("dl", "facts");
+  const f1 = el("div"); f1.append(el("dt", "", "Para quem serve"), el("dd", "", r.serve));
+  const f2 = el("div"); f2.append(el("dt", "", "Para começar"), el("dd", "", r.uso));
+  facts.append(f1, f2); art.append(facts);
+
+  const tabs = el("div", "tabs"); tabs.setAttribute("role", "tablist");
+  r.tabs.forEach(t => {
+    const b = el("button", "tab", t.l); b.type = "button"; b.dataset.k = t.k;
+    b.setAttribute("role", "tab"); b.addEventListener("click", () => selectTab(art, t.k));
+    tabs.append(b);
+  });
+  art.append(tabs);
+
+  r.tabs.forEach(t => {
+    const p = el("div", "panel"); p.dataset.k = t.k; p.setAttribute("role", "tabpanel");
+    p.append(el("p", "why", t.why));
+    const box = el("div", "codebox"); const pre = el("pre"); const code = el("code", "", t.code); pre.append(code);
+    const copy = el("button", "copy", "copiar"); copy.type = "button";
+    copy.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(t.code); copy.textContent = "copiado"; }
+      catch (e) { const rg = document.createRange(); rg.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); copy.textContent = "selecionado"; }
+      setTimeout(() => { copy.textContent = "copiar"; }, 1600);
+    });
+    box.append(pre, copy); p.append(box); art.append(p);
+  });
+  art.append(el("div", "note", "Atenção: " + r.nota));
+  selectTab(art, r.tabs[0].k);
+  return art;
+}
+
+function applyPick(v) {
+  document.querySelectorAll("article.repo").forEach(art => {
+    const repo = REPOS.find(r => r.id === art.id);
+    const hit = v && repo.tabs.find(t => t.k === v);
+    selectTab(art, hit ? hit.k : repo.tabs[0].k);
+  });
+}
+
+function buildIndex() {
+  const nav = $("#index");
+  REPOS.forEach(r => {
+    const a = el("a"); a.href = "#" + r.id; a.append(el("span", "", r.nome), el("small", "", r.curto)); nav.append(a);
+  });
+  const links = [...nav.querySelectorAll("a")];
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting) links.forEach(l => l.classList.toggle("on", l.getAttribute("href") === "#" + e.target.id)); });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("article.repo").forEach(a => io.observe(a));
+}
+
+buildMatrix();
+const host = $("#repos");
+REPOS.forEach(r => host.append(buildRepo(r)));
+buildIndex();
+const pick = $("#idePick");
+pick.value = store.get();
+if (pick.value) applyPick(pick.value);
+pick.addEventListener("change", () => { store.set(pick.value); applyPick(pick.value); });
+</script>

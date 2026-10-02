@@ -1,0 +1,12 @@
+{
+  "versao": "2026-10-01.1",
+  "valor_hora": 150,
+  "margem_risco": 0.25,
+  "desconto_adaptacao": 0.2,
+  "mensalidade_taxa": 0.14,
+  "mensalidade_minima": 300,
+  "entrada": 0.5,
+  "teto_roi": 0.5,
+  "pisos": { "simples": 900, "medio": 2200, "complexo": 5000 },
+  "validade_dias": 15
+}

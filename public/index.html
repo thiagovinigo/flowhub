@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Flow Hub</title>
+  <script>
+    /* Aplica o tema salvo antes da primeira pintura, para não piscar. */
+    try {
+      var savedTheme = localStorage.getItem('flowhub-theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') document.documentElement.dataset.theme = savedTheme;
+    } catch (error) { /* sem armazenamento: segue o sistema */ }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip" href="#conteudo">Ir para o conteúdo</a>
+  <header class="bar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 28 28" width="26" height="26" aria-hidden="true" focusable="false">
+        <path d="M6 8h8a4 4 0 0 1 4 4v0a4 4 0 0 0 4 4h0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 20h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+        <circle cx="6" cy="8" r="3" fill="currentColor"/>
+        <circle cx="6" cy="20" r="3" fill="currentColor" opacity=".45"/>
+        <circle cx="22" cy="16" r="3.4" fill="currentColor"/>
+      </svg>
+      <span>Flow Hub</span>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Seções">
+      <button class="tab" role="tab" id="tab-chat" data-view="chat" aria-controls="view-chat" aria-selected="false" tabindex="-1">Consultor</button>
+      <button class="tab" role="tab" id="tab-catalogo" data-view="catalogo" aria-controls="view-catalogo" aria-selected="false" tabindex="-1">Catálogo</button>
+      <button class="tab" role="tab" id="tab-pedidos" data-view="pedidos" aria-controls="view-pedidos" aria-selected="false" tabindex="-1">Pedidos</button>
+      <button class="tab" role="tab" id="tab-orcamento" data-view="orcamento" aria-controls="view-orcamento" aria-selected="false" tabindex="-1">Orçamento</button>
+    </div>
+    <div class="bar-end">
+      <span id="status" class="status" aria-live="polite"></span>
+      <div class="theme" role="group" aria-label="Tema da interface" id="theme">
+        <button type="button" data-theme-choice="system" aria-pressed="true">Auto</button>
+        <button type="button" data-theme-choice="light" aria-pressed="false">Claro</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false">Escuro</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section id="view-chat" class="view" role="tabpanel" aria-labelledby="tab-chat" tabindex="-1" hidden>
+      <div class="intro">
+        <p class="eyebrow">01 · Consultor</p>
+        <h1>Descreva o problema do cliente</h1>
+        <p class="lede">O consultor procura no catálogo, entrevista se faltar informação e devolve fluxo, features e orçamento.</p>
+      </div>
+      <div class="starters" id="starters"></div>
+      <div id="log" class="log" role="log" aria-label="Conversa com o consultor"></div>
+      <form id="chat-form" class="composer">
+        <label for="message" class="sr">Mensagem para o consultor</label>
+        <textarea id="message" rows="3" placeholder="Ex.: cliente de imobiliária perde leads que chegam pelo WhatsApp fora do horário"></textarea>
+        <div class="composer-actions">
+          <button type="button" id="reset" class="ghost">Nova conversa</button>
+          <span class="hint">Ctrl + Enter envia</span>
+          <button type="submit" id="send" class="primary">Enviar</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="view-catalogo" class="view" role="tabpanel" aria-labelledby="tab-catalogo" tabindex="-1" hidden>
+      <div class="intro">
+        <p class="eyebrow">02 · Catálogo</p>
+        <h1>Catálogo de fluxos</h1>
+        <p class="lede">Busca no acervo indexado, sem duplicatas exatas. Compare gatilho, integrações e tamanho antes de escolher.</p>
+      </div>
+      <form id="search-form" class="filters">
+        <div class="field grow"><label for="q">O que o fluxo faz</label><input id="q" type="search" placeholder="atendimento whatsapp imobiliária" required></div>
+        <div class="field"><label for="integration">Integração</label><input id="integration" placeholder="gmail"></div>
+        <div class="field"><label for="maxComplexity">Complexidade até</label>
+          <select id="maxComplexity"><option value="">qualquer</option><option value="simples">simples</option><option value="medio">médio</option><option value="complexo">complexo</option></select></div>
+        <label class="check"><input id="onlyAi" type="checkbox"> só com IA</label>
+        <button type="submit" class="primary">Buscar</button>
+      </form>
+      <div id="results-bar" class="results-bar" hidden>
+        <p id="results-count" class="muted" aria-live="polite"></p>
+        <div class="field inline"><label for="sort">Ordenar por</label>
+          <select id="sort">
+            <option value="relevance">relevância</option>
+            <option value="nodes-asc">menos nós</option>
+            <option value="nodes-desc">mais nós</option>
+            <option value="complexity">complexidade (simples primeiro)</option>
+          </select></div>
+      </div>
+      <div id="results" class="results"></div>
+    </section>
+
+    <section id="view-pedidos" class="view view-wide" role="tabpanel" aria-labelledby="tab-pedidos" tabindex="-1" hidden>
+      <div class="intro">
+        <p class="eyebrow">03 · Pedidos</p>
+        <h1>Esteira de pedidos</h1>
+        <p class="lede">Cada cartão é um arquivo em <span class="mono">vault/Pedidos</span>. Arraste ou use o seletor <em>Mover para</em> para mudar o estado. Aprovado, Em construção e Entregue só abrem com aceite, entrada paga e checklist completo.</p>
+        <button id="novo-pedido" class="primary" type="button">Novo pedido</button>
+      </div>
+      <div id="pipeline" class="pipeline"></div>
+      <div id="board-guide"></div>
+      <div id="board" class="board"></div>
+    </section>
+
+    <section id="view-orcamento" class="view" role="tabpanel" aria-labelledby="tab-orcamento" tabindex="-1" hidden>
+      <div class="intro">
+        <p class="eyebrow">04 · Orçamento</p>
+        <h1>Orçamento</h1>
+        <p class="lede">Mesmo cálculo do <span class="mono">flowhub/quote.py</span>. Ajuste os parâmetros de preço em <span class="mono">flowhub/parametros.json</span>, não aqui.</p>
+      </div>
+      <form id="quote-form" class="filters">
+        <div class="field"><label for="complexity">Complexidade</label>
+          <select id="complexity"><option value="simples">simples</option><option value="medio" selected>médio</option><option value="complexo">complexo</option></select></div>
+        <div class="field"><label for="hours">Horas de entrega</label><input id="hours" type="number" min="0.5" step="0.5" value="20" required></div>
+        <div class="field"><label for="adaptHours">Dessas, horas de adaptação</label><input id="adaptHours" type="number" min="0" step="0.5" value="0"></div>
+        <div class="field"><label for="clientWeek">Cliente: horas por semana</label><input id="clientWeek" type="number" min="0" step="0.5" placeholder="15"></div>
+        <div class="field"><label for="clientCost">Cliente: custo da hora (R$)</label><input id="clientCost" type="number" min="0" step="1" placeholder="50"></div>
+        <div class="field"><label for="saving">ou economia mensal direta (R$)</label><input id="saving" type="number" min="1" step="any" placeholder="opcional"></div>
+        <button type="submit" class="primary">Calcular</button>
+      </form>
+      <div id="quote-result" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" popover="manual"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

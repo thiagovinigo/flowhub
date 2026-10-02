@@ -1,0 +1,29 @@
+# Repositorio PUBLICO: nada de acervo de terceiros, dados de clientes ou segredos.
+
+# Acervo de fluxos e modelos de terceiros (licenca incerta, pode conter credenciais).
+# Regenere a partir dos zips originais; veja CLAUDE.md.
+_raw/
+
+# Catalogo gerado: rode `python flowhub/indexer.py`
+flowhub/catalog.db
+__pycache__/
+*.pyc
+
+# Dados de clientes e entregas
+projetos/
+
+# Cofre: so os modelos vao para o repositorio; pedidos, clientes, precos e memoria ficam locais
+vault/**
+!vault/
+!vault/Pedidos/
+!vault/Pedidos/_modelo-pedido.md
+!vault/Clientes/
+!vault/Clientes/_modelo-cliente.md
+
+# Segredos e arquivos locais
+.env
+.env.*
+node_modules/
+*.log
+.claude/settings.local.json
+.claude/worktrees/

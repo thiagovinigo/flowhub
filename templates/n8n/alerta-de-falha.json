@@ -1,0 +1,96 @@
+{
+  "name": "MODELO - Alerta de falha por e-mail",
+  "nodes": [
+    {
+      "name": "Leia-me",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -200
+      ],
+      "parameters": {
+        "content": "Modelo de alerta. Em cada fluxo do cliente, abra Configurações e escolha este como fluxo de erro. Quando um fluxo falhar, o dono recebe um e-mail com o nome do fluxo e o erro.",
+        "width": 420,
+        "height": 140
+      }
+    },
+    {
+      "name": "Quando um fluxo falhar",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "name": "Montar aviso",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "assunto",
+              "value": "={{ 'Falha no fluxo: ' + $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "name": "texto",
+              "value": "={{ 'O nó ' + $json.execution.lastNodeExecuted + ' falhou: ' + ($json.execution.error.message || 'erro desconhecido') }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Enviar e-mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "fromEmail": "COLE_AQUI_O_REMETENTE",
+        "toEmail": "COLE_AQUI_O_DESTINO",
+        "subject": "={{ $json.assunto }}",
+        "text": "={{ $json.texto }}"
+      }
+    }
+  ],
+  "connections": {
+    "Quando um fluxo falhar": {
+      "main": [
+        [
+          {
+            "node": "Montar aviso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar aviso": {
+      "main": [
+        [
+          {
+            "node": "Enviar e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
